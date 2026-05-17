@@ -102,6 +102,9 @@ public:
   u32                                 GetNumThreads(void) {return nthreads;}
   u32                                 GetFileThreads(void) {return filethreads;}
 #endif
+#ifdef USE_METAL
+  bool                                GetUseGPU(void) const {return useGPU;}
+#endif
 
 
   static bool ComputeRecoveryBlockCount(u32 *recoveryblockcount,
@@ -207,6 +210,9 @@ protected:
 
   bool recursive;              // recurse into subdirectories
 
+#ifdef USE_METAL
+  bool useGPU;                 // use Metal GPU for RS computation (create only)
+#endif
 };
 
 #endif // __COMMANDLINE_H__

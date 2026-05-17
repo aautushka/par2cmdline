@@ -252,6 +252,22 @@ TESTS = tests/test1 \
 		tests/utf8_test \
 		tests/unit_tests
 
+if HAVE_METAL
+# Weak stubs go into libpar2.a so test programs can link without Metal framework.
+# Real Metal implementation goes directly into the par2 binary (and metal_rs_test),
+# where its strong symbols override the weak stubs at link time.
+libpar2_a_SOURCES += src/metal_rs_stubs.cpp
+par2_SOURCES += src/metal_rs.mm
+par2_LDFLAGS = -framework Metal -framework Foundation
+AM_OBJCXXFLAGS = -Wall -std=c++14 -fobjc-arc
+tests_metal_rs_test_SOURCES     = src/metal_rs_test.cpp src/metal_rs.mm
+tests_metal_rs_test_LDADD       = libpar2.a
+tests_metal_rs_test_LDFLAGS     = -framework Metal -framework Foundation
+tests_metal_rs_test_OBJCXXFLAGS = -Wall -std=c++14 -fobjc-arc
+check_PROGRAMS += tests/metal_rs_test
+TESTS          += tests/metal_rs_test
+endif
+
 install-exec-hook :
 	cd $(DESTDIR)$(bindir)/ && \
 	ln -sf par2$(EXEEXT) par2create$(EXEEXT) && \

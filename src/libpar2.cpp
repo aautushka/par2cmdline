@@ -28,6 +28,9 @@ Result par2create(std::ostream &sout,
 		  const u32 nthreads,
 		  const u32 filethreads,
 #endif
+#ifdef USE_METAL
+		  const bool useGPU,
+#endif
 		  const std::string &parfilename,
 		  const std::vector<std::string> &extrafiles,
 		  const u64 blocksize,
@@ -44,6 +47,9 @@ Result par2create(std::ostream &sout,
 #ifdef _OPENMP
 				  nthreads,
 				  filethreads,
+#endif
+#ifdef USE_METAL
+				  useGPU,
 #endif
 				  parfilename,
 				  extrafiles,

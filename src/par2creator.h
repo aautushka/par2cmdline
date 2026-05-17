@@ -21,6 +21,10 @@
 #ifndef __PAR2CREATOR_H__
 #define __PAR2CREATOR_H__
 
+#ifdef USE_METAL
+#include "metal_rs.h"
+#endif
+
 class MainPacket;
 class CreatorPacket;
 class CriticalPacket;
@@ -38,6 +42,9 @@ public:
 #ifdef _OPENMP
 		 const u32 nthreads,
 		 const u32 filethreads,
+#endif
+#ifdef USE_METAL
+		 const bool useGPU,
 #endif
 		 const std::string &parfilename,
 		 const std::vector<std::string> &extrafiles,
@@ -164,6 +171,11 @@ protected:
                              // the recovery data is computed.
 #ifdef _OPENMP
   u64 mttotalsize;           // Total size of files for mt-progress line
+#endif
+
+#ifdef USE_METAL
+  bool      useGPU;
+  MetalRS  *metalRS;
 #endif
 };
 

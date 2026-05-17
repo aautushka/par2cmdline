@@ -70,6 +70,10 @@ Par2Creator::Par2Creator(std::ostream &sout, std::ostream &serr, const NoiseLeve
 #ifdef _OPENMP
 , mttotalsize(0)
 #endif
+#ifdef USE_METAL
+, useGPU(false)
+, metalRS(nullptr)
+#endif
 {
 }
 
@@ -80,6 +84,10 @@ Par2Creator::~Par2Creator(void)
 
   delete [] (u8*)inputbuffer;
   delete [] (u8*)outputbuffer;
+
+#ifdef USE_METAL
+  metal_rs_destroy(metalRS);
+#endif
 
   std::vector<Par2CreatorSourceFile*>::iterator sourcefile = sourcefiles.begin();
   while (sourcefile != sourcefiles.end())
@@ -96,6 +104,9 @@ Result Par2Creator::Process(
 			    const u32 nthreads,
 			    const u32 _filethreads,
 #endif
+#ifdef USE_METAL
+			    const bool _useGPU,
+#endif
 			    const std::string &parfilename,
 			    const std::vector<std::string> &_extrafiles,
 			    const u64 _blocksize,
@@ -106,6 +117,9 @@ Result Par2Creator::Process(
 {
 #ifdef _OPENMP
   filethreads = _filethreads;
+#endif
+#ifdef USE_METAL
+  useGPU = _useGPU;
 #endif
 
   if (!CheckBasepath(parfilename))
@@ -190,6 +204,18 @@ Result Par2Creator::Process(
     // Compute the Reed Solomon matrix
     if (!ComputeRSMatrix())
       return eLogicError;
+
+#ifdef USE_METAL
+    if (useGPU) {
+      metalRS = metal_rs_create(recoveryblockcount, chunksize);
+      if (!metal_rs_available(metalRS)) {
+        serr << "Warning: Metal GPU unavailable, falling back to CPU." << std::endl;
+        useGPU = false;
+      } else if (noiselevel > nlQuiet) {
+        sout << "Using Metal GPU for Reed-Solomon computation." << std::endl;
+      }
+    }
+#endif
 
     // Set the total amount of data to be processed.
     progress = 0;
@@ -783,6 +809,11 @@ bool Par2Creator::ComputeRSMatrix(void)
 bool Par2Creator::ProcessData(u64 blockoffset, size_t blocklength)
 {
   // Clear the output buffer
+#ifdef USE_METAL
+  if (useGPU && metalRS)
+    metal_rs_clear_output(metalRS);
+  else
+#endif
   memset(outputbuffer, 0, chunksize * recoveryblockcount);
 
   // If we have deferred computation of the file hash and block crc and hashes
@@ -830,7 +861,28 @@ bool Par2Creator::ProcessData(u64 blockoffset, size_t blocklength)
       (*sourcefile)->UpdateHashes(sourceindex, inputbuffer, blocklength);
     }
 
-    // For each output block
+#ifdef USE_METAL
+    // GPU path: dispatch all recovery blocks for this source block in one kernel call
+    if (useGPU && metalRS)
+    {
+      std::vector<u16> factors(recoveryblockcount);
+      for (u32 out = 0; out < recoveryblockcount; out++)
+        factors[out] = (u16)rs.GetFactor(out, inputblock);
+
+      metal_rs_process_block(metalRS, inputbuffer, blocklength,
+                             factors.data(), recoveryblockcount);
+
+      if (noiselevel > nlQuiet)
+      {
+        progress += (u64)blocklength * recoveryblockcount;
+        u32 f = (u32)(1000 * progress / totaldata);
+        sout << "Processing: " << f/10 << '.' << f%10 << "%\r" << std::flush;
+      }
+    }
+    else
+#endif
+    // CPU path: OpenMP parallel loop over recovery blocks
+    {
     #pragma omp parallel for
     for (i64 outputblock=0; outputblock<recoveryblockcount; outputblock++)
     {
@@ -857,6 +909,7 @@ bool Par2Creator::ProcessData(u64 blockoffset, size_t blocklength)
         }
       }
     }
+    }
 
     // Work out which source file the next block belongs to
     if (++sourceindex >= (*sourcefile)->BlockCount())
@@ -871,6 +924,11 @@ bool Par2Creator::ProcessData(u64 blockoffset, size_t blocklength)
   {
     lastopenfile->Close();
   }
+
+#ifdef USE_METAL
+  if (useGPU && metalRS)
+    metal_rs_get_output(metalRS, outputbuffer);
+#endif
 
   if (noiselevel > nlQuiet)
     sout << "Writing recovery packets\r";

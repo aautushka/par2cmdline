@@ -63,6 +63,17 @@ AC_FUNC_FSEEKO
 dnl Check for OpenMP
 AC_OPENMP
 
+dnl Optional Metal GPU acceleration (macOS only)
+AC_ARG_ENABLE([metal],
+  [AS_HELP_STRING([--enable-metal], [Enable Metal GPU acceleration for RS computation (macOS only)])],
+  [enable_metal=$enableval], [enable_metal=no])
+
+if test "x$enable_metal" = "xyes"; then
+  AC_PROG_OBJCXX
+  AC_DEFINE([USE_METAL], [1], [Define to enable Metal GPU acceleration])
+fi
+AM_CONDITIONAL([HAVE_METAL], [test "x$enable_metal" = "xyes"])
+
 dnl Checks for library functions.
 AC_FUNC_MEMCMP
 AC_CHECK_FUNCS([stricmp] [strcasecmp])

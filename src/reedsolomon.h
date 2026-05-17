@@ -67,6 +67,12 @@ public:
                const void *inputbuffer, // Buffer containing input data
                u32 outputindex,         // The row in the RS matrix
                void *outputbuffer);     // Buffer containing output data
+
+  // Read a single RS matrix coefficient (used by the Metal GPU path).
+  G    GetFactor(u32 outputindex, u32 inputindex) const
+         { return leftmatrix[outputindex * (datapresent + datamissing) + inputindex]; }
+  u32  GetInputCount(void) const { return datapresent + datamissing; }
+
 private:
 		bool InternalProcess(const g &factor, size_t size, const void *inputbuffer, void *outputbuffer);	// Optimization
 

@@ -66,6 +66,9 @@ CommandLine::CommandLine(void)
 , redundancysize(0)
 , redundancyset(false)
 , recursive(false)
+#ifdef USE_METAL
+, useGPU(false)
+#endif
 {
 }
 
@@ -142,6 +145,9 @@ void CommandLine::usage(void)
     "             (Be aware of wildcard shell expansion)\n"
     "   @       : Process a listing of files specified in text (file) input \n"
     "             (eg. @filelist.txt, or bare @ to read from stdin) \n"
+#ifdef USE_METAL
+    "  --gpu    : Use Metal GPU for Reed-Solomon computation (create only)\n"
+#endif
     "\n";
   std::cout <<
     "Example:\n"
@@ -838,6 +844,12 @@ bool CommandLine::ReadArgs(int argc, const char * const *argv)
 
         case '-':
           {
+#ifdef USE_METAL
+            if (argv[0] == std::string("--gpu")) {
+              useGPU = true;
+              break;
+            }
+#endif
 	    if (argv[0] != std::string("--")) {
               std::cerr << "Unknown option: " << argv[0] << std::endl;
 	      std::cerr << "  (Options must appear after create, repair or verify.)" << std::endl;

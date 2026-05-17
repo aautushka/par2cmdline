@@ -107,6 +107,9 @@
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
 
+/* Define to enable Metal GPU acceleration */
+#undef USE_METAL
+
 /* Version number of package */
 #undef VERSION
 

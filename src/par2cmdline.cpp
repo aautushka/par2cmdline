@@ -84,6 +84,9 @@ int main(int argc, char* argv[])
 			    commandline->GetNumThreads(),
 			    commandline->GetFileThreads(),
 #endif
+#ifdef USE_METAL
+			    commandline->GetUseGPU(),
+#endif
 			    commandline->GetParFilename(),
 			    commandline->GetExtraFiles(),
 
