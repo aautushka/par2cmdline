@@ -269,21 +269,25 @@ TESTS          += tests/metal_rs_test
 endif
 
 install-exec-hook :
+	mv $(DESTDIR)$(bindir)/par2$(EXEEXT) $(DESTDIR)$(bindir)/par2-gpu$(EXEEXT)
 	cd $(DESTDIR)$(bindir)/ && \
-	ln -sf par2$(EXEEXT) par2create$(EXEEXT) && \
-	ln -sf par2$(EXEEXT) par2verify$(EXEEXT) && \
-	ln -sf par2$(EXEEXT) par2repair$(EXEEXT)
+	ln -sf par2-gpu$(EXEEXT) par2create-gpu$(EXEEXT) && \
+	ln -sf par2-gpu$(EXEEXT) par2verify-gpu$(EXEEXT) && \
+	ln -sf par2-gpu$(EXEEXT) par2repair-gpu$(EXEEXT)
 
 install-data-hook :
+	mv $(DESTDIR)$(man1dir)/par2.1 $(DESTDIR)$(man1dir)/par2-gpu.1
 	cd $(DESTDIR)$(man1dir)/ && \
-	ln -sf par2.1 par2create.1 && \
-	ln -sf par2.1 par2verify.1 && \
-	ln -sf par2.1 par2repair.1
+	ln -sf par2-gpu.1 par2create-gpu.1 && \
+	ln -sf par2-gpu.1 par2verify-gpu.1 && \
+	ln -sf par2-gpu.1 par2repair-gpu.1
 
 uninstall-hook :
-	rm -f $(DESTDIR)$(bindir)/par2create$(EXEEXT)
-	rm -f $(DESTDIR)$(bindir)/par2verify$(EXEEXT)
-	rm -f $(DESTDIR)$(bindir)/par2repair$(EXEEXT)
-	rm -f $(DESTDIR)$(man1dir)/par2create.1
-	rm -f $(DESTDIR)$(man1dir)/par2verify.1
-	rm -f $(DESTDIR)$(man1dir)/par2repair.1
+	rm -f $(DESTDIR)$(bindir)/par2-gpu$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/par2create-gpu$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/par2verify-gpu$(EXEEXT)
+	rm -f $(DESTDIR)$(bindir)/par2repair-gpu$(EXEEXT)
+	rm -f $(DESTDIR)$(man1dir)/par2-gpu.1
+	rm -f $(DESTDIR)$(man1dir)/par2create-gpu.1
+	rm -f $(DESTDIR)$(man1dir)/par2verify-gpu.1
+	rm -f $(DESTDIR)$(man1dir)/par2repair-gpu.1
