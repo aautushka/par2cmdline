@@ -4,6 +4,12 @@
 #include <cstddef>
 #include <cstdint>
 
+// Number of source blocks batched into a single GPU dispatch.
+// Increasing this reduces output-buffer memory traffic proportionally:
+// with TILE_SIZE=64 the 750 MB output buffer is read/written 64× less often.
+// Exposed here so tests can construct exact tile-boundary cases.
+static constexpr uint32_t METAL_RS_TILE_SIZE = 64;
+
 // Opaque context — implementation is Objective-C++ (metal_rs.mm).
 struct MetalRS;
 
